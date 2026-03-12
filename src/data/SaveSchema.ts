@@ -5,6 +5,11 @@
 
 export const CURRENT_SAVE_VERSION = 1;
 
+export interface IllnessState {
+  type: string | null;
+  startTimestamp: number | null;
+}
+
 export interface PetState {
   name: string;
   elementType: string;
@@ -23,6 +28,7 @@ export interface PetState {
     trust: number;
     stress: number;
   };
+  illness: IllnessState;
   evolutionPath: string | null;
   birthTimestamp: number;
   stageStartTimestamp: number;
