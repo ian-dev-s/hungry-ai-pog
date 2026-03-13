@@ -37,6 +37,8 @@ export class EggSelectionScene implements Scene {
       this.selectedIndex = Math.max(0, this.selectedIndex - 1);
     } else if (e.key === 'ArrowDown' || e.key === 's') {
       this.selectedIndex = Math.min(ALL_EGG_ELEMENTS.length - 1, this.selectedIndex + 1);
+    } else if (e.key === 'r' || e.key === 'R') {
+      this.randomizeSelection();
     } else if (e.key === 'Enter' || e.key === ' ') {
       this.confirmSelection();
     } else if (e.key === 'Escape') {
@@ -54,6 +56,13 @@ export class EggSelectionScene implements Scene {
     const startY = 90;
     const rowHeight = 80;
 
+    // Check randomize button area (below egg list)
+    const randomBtnY = startY + ALL_EGG_ELEMENTS.length * rowHeight + 8;
+    if (y >= randomBtnY && y < randomBtnY + 36) {
+      this.randomizeSelection();
+      return;
+    }
+
     for (let i = 0; i < ALL_EGG_ELEMENTS.length; i++) {
       const itemY = startY + i * rowHeight;
       if (y >= itemY && y < itemY + rowHeight) {
@@ -63,6 +72,11 @@ export class EggSelectionScene implements Scene {
       }
     }
   };
+
+  private randomizeSelection(): void {
+    this.selectedIndex = Math.floor(Math.random() * ALL_EGG_ELEMENTS.length);
+    this.confirmSelection();
+  }
 
   private confirmSelection(): void {
     const element = ALL_EGG_ELEMENTS[this.selectedIndex];
@@ -86,7 +100,7 @@ export class EggSelectionScene implements Scene {
 
     ctx.font = '12px monospace';
     ctx.fillStyle = '#888';
-    ctx.fillText('Up/Down to browse, Enter to select, ESC to go back', width / 2, 68);
+    ctx.fillText('Up/Down to browse, Enter to select, R to randomize', width / 2, 68);
 
     // Egg list
     const startY = 90;
@@ -142,5 +156,15 @@ export class EggSelectionScene implements Scene {
       ctx.textAlign = 'right';
       ctx.fillText(element.toUpperCase(), width - 24, y + 22);
     }
+
+    // Randomize button
+    const btnY = startY + ALL_EGG_ELEMENTS.length * rowHeight + 8;
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(width / 2 - 70, btnY, 140, 36);
+    ctx.fillStyle = '#e0e0e0';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[R] Randomize', width / 2, btnY + 18);
   }
 }

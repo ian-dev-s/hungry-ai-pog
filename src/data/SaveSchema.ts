@@ -3,7 +3,9 @@
  * Version-tagged to support future migrations.
  */
 
-export const CURRENT_SAVE_VERSION = 3;
+import type { EggState } from './EggConfig';
+
+export const CURRENT_SAVE_VERSION = 4;
 
 export type TrainingSkill = 'obedience' | 'tricks' | 'agility';
 
@@ -177,6 +179,7 @@ export interface FeedingStateData {
 export interface SaveData {
   version: number;
   pet: PetState | null;
+  egg: EggState | null;
   inventory: InventoryItem[];
   room: RoomLayout;
   unlocks: UnlockState;
@@ -246,6 +249,7 @@ export function createDefaultSave(): SaveData {
   return {
     version: CURRENT_SAVE_VERSION,
     pet: null,
+    egg: null,
     inventory: [],
     room: {
       wallpaper: 'default',
