@@ -265,5 +265,78 @@ export const TALK_COOLDOWN = 60;
 /** Maximum number of events stored in pet memory. */
 export const MAX_MEMORY_EVENTS = 20;
 
-/** How long (ms) before an event is considered "old" and loses influence. */
+/** How long (ms) before an event is considered "old" and loses influence on mood. */
 export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+/** How long (ms) events are kept in memory for behavioral references (7 days). */
+export const MEMORY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+// ─── Vocabulary Growth ──────────────────────────────────────────────────────
+
+/**
+ * Vocabulary pools by life stage. Each stage accumulates all previous stage words
+ * plus its own new words. Vocabulary is used to pick speech bubble text variants.
+ */
+export type LifeStageVocab = 'egg' | 'blob' | 'juvenile' | 'adolescent' | 'adult' | 'elder';
+
+export interface VocabEntry {
+  /** The speech text. */
+  text: string;
+  /** Which bubble categories this text can be used for. */
+  categories: BubbleCategory[];
+}
+
+/**
+ * Words/phrases unlocked at each life stage. Cumulative — later stages include
+ * all earlier words plus new ones.
+ */
+export const VOCABULARY_BY_STAGE: Record<LifeStageVocab, VocabEntry[]> = {
+  egg: [],
+  blob: [
+    { text: '...!', categories: ['need', 'feeling'] },
+    { text: '*bounce*', categories: ['feeling'] },
+    { text: '*wiggle*', categories: ['need'] },
+  ],
+  juvenile: [
+    { text: 'Hungry!', categories: ['need'] },
+    { text: 'Play!', categories: ['feeling', 'request'] },
+    { text: 'Tired...', categories: ['need'] },
+    { text: 'Yay!', categories: ['feeling'] },
+    { text: 'No!', categories: ['rebellion'] },
+    { text: 'Hug?', categories: ['affection'] },
+  ],
+  adolescent: [
+    { text: 'Whatever...', categories: ['rebellion'] },
+    { text: 'Leave me alone!', categories: ['rebellion'] },
+    { text: 'Can we go explore?', categories: ['request'] },
+    { text: 'I\'m starving!', categories: ['need'] },
+    { text: 'This is boring...', categories: ['feeling'] },
+    { text: 'You\'re okay, I guess.', categories: ['affection'] },
+    { text: 'I feel weird...', categories: ['feeling'] },
+  ],
+  adult: [
+    { text: 'I appreciate you.', categories: ['affection'] },
+    { text: 'Could we try something new?', categories: ['request'] },
+    { text: 'I\'m not feeling great today.', categories: ['need', 'feeling'] },
+    { text: 'Remember when we...', categories: ['affection', 'feeling'] },
+    { text: 'I\'d love some {food}!', categories: ['request'] },
+    { text: 'Let\'s play {game} again!', categories: ['request'] },
+    { text: 'I trust you.', categories: ['affection'] },
+  ],
+  elder: [
+    { text: 'These old bones are tired.', categories: ['need'] },
+    { text: 'I\'ve had a wonderful life.', categories: ['affection', 'feeling'] },
+    { text: 'You\'ve always been there for me.', categories: ['affection'] },
+    { text: 'Let me rest a while.', categories: ['need'] },
+    { text: 'I remember everything.', categories: ['feeling'] },
+    { text: 'Take care of yourself too.', categories: ['affection'] },
+  ],
+};
+
+/**
+ * The ordered list of stages for vocabulary accumulation.
+ * A pet at stage N has all vocabulary from stages 0..N.
+ */
+export const VOCAB_STAGE_ORDER: LifeStageVocab[] = [
+  'egg', 'blob', 'juvenile', 'adolescent', 'adult', 'elder',
+];

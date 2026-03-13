@@ -16,6 +16,7 @@ import {
   STAT_MOOD_RULES,
   MAX_MEMORY_EVENTS,
   EVENT_MEMORY_DECAY_MS,
+  MEMORY_WINDOW_MS,
 } from '../data/PersonalityConfig';
 
 function clamp(value: number, min: number, max: number): number {
@@ -54,6 +55,12 @@ export class MoodEngine {
 
     // Prune moods that have decayed to zero
     mood.moods = mood.moods.filter((m) => m.intensity > 0.5);
+
+    // Prune memory events older than 7-day window
+    const now = Date.now();
+    pet.communication.memory = pet.communication.memory.filter(
+      (e) => now - e.timestamp < MEMORY_WINDOW_MS,
+    );
 
     // Recalculate dominant mood
     mood.dominantMood = this.calculateDominantMood(mood);

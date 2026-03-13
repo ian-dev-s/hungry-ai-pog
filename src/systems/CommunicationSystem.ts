@@ -28,6 +28,7 @@ import {
 } from '../data/PersonalityConfig';
 import { MoodEngine } from './MoodEngine';
 import { PersonalitySystem } from './PersonalitySystem';
+import { VocabularySystem } from './VocabularySystem';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -44,10 +45,12 @@ export interface TalkResult {
 export class CommunicationSystem {
   private moodEngine: MoodEngine;
   private personalitySystem: PersonalitySystem;
+  private vocabularySystem: VocabularySystem;
 
-  constructor(moodEngine: MoodEngine, personalitySystem: PersonalitySystem) {
+  constructor(moodEngine: MoodEngine, personalitySystem: PersonalitySystem, vocabularySystem?: VocabularySystem) {
     this.moodEngine = moodEngine;
     this.personalitySystem = personalitySystem;
+    this.vocabularySystem = vocabularySystem ?? new VocabularySystem();
   }
 
   /**
@@ -131,22 +134,29 @@ export class CommunicationSystem {
     return Math.max(0, TALK_COOLDOWN - elapsed);
   }
 
+  /**
+   * Get the vocabulary system instance (for external access/testing).
+   */
+  getVocabularySystem(): VocabularySystem {
+    return this.vocabularySystem;
+  }
+
   private gatherCandidateBubbles(pet: PetState): SpeechBubble[] {
     const bubbles: SpeechBubble[] = [];
 
     // Need-based bubbles
-    if (pet.stats.hunger < 25) bubbles.push(NEED_BUBBLES.hungry);
-    if (pet.stats.energy < 20) bubbles.push(NEED_BUBBLES.tired);
-    if (pet.stats.hygiene < 20) bubbles.push(NEED_BUBBLES.dirty);
-    if (pet.illness.type !== null) bubbles.push(NEED_BUBBLES.sick);
-    if (pet.stats.bond < 25) bubbles.push(NEED_BUBBLES.lonely);
-    if (pet.hiddenStats.stress > 70) bubbles.push(NEED_BUBBLES.stressed);
+    if (pet.stats.hunger < 25) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.hungry));
+    if (pet.stats.energy < 20) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.tired));
+    if (pet.stats.hygiene < 20) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.dirty));
+    if (pet.illness.type !== null) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.sick));
+    if (pet.stats.bond < 25) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.lonely));
+    if (pet.hiddenStats.stress > 70) bubbles.push(this.enrichBubble(pet, NEED_BUBBLES.stressed));
 
     // Feeling-based bubbles from mood
     const activeMoods = this.moodEngine.getActiveMoods(pet);
     for (const { mood } of activeMoods) {
       const bubble = FEELING_BUBBLES[mood];
-      if (bubble) bubbles.push(bubble);
+      if (bubble) bubbles.push(this.enrichBubble(pet, bubble));
     }
 
     // Request bubbles from memory
@@ -156,10 +166,48 @@ export class CommunicationSystem {
     // Affection check
     const affection = this.personalitySystem.checkAffection(pet);
     if (affection.expressed && affection.bubble) {
-      bubbles.push(affection.bubble);
+      bubbles.push(this.enrichBubble(pet, affection.bubble));
     }
 
     return bubbles;
+  }
+
+  /**
+   * Enrich a speech bubble with vocabulary-appropriate text when available.
+   * Falls back to the original bubble text if no vocabulary matches.
+   */
+  private enrichBubble(pet: PetState, bubble: SpeechBubble): SpeechBubble {
+    const vocabText = this.vocabularySystem.pickText(pet, bubble.category, this.getMemoryContext(pet));
+    if (vocabText) {
+      return { ...bubble, text: vocabText };
+    }
+    return bubble;
+  }
+
+  private getMemoryContext(pet: PetState): { favoriteFood?: string; favoriteGame?: string } {
+    const memory = pet.communication.memory;
+    const context: { favoriteFood?: string; favoriteGame?: string } = {};
+
+    const foodCounts = new Map<string, number>();
+    const gameCounts = new Map<string, number>();
+
+    for (const event of memory) {
+      if (event.type === 'fed_loved' && event.details) {
+        foodCounts.set(event.details, (foodCounts.get(event.details) ?? 0) + 1);
+      }
+      if (event.type === 'played_game' && event.details) {
+        gameCounts.set(event.details, (gameCounts.get(event.details) ?? 0) + 1);
+      }
+    }
+
+    if (foodCounts.size > 0) {
+      context.favoriteFood = [...foodCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    }
+    if (gameCounts.size > 0) {
+      context.favoriteGame = [...gameCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    }
+
+    return context;
   }
 
   private getMemoryBasedRequests(pet: PetState): SpeechBubble[] {
