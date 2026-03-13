@@ -263,7 +263,132 @@ export const TALK_STRESS_REDUCTION = 5;
 export const TALK_COOLDOWN = 60;
 
 /** Maximum number of events stored in pet memory. */
-export const MAX_MEMORY_EVENTS = 20;
+export const MAX_MEMORY_EVENTS = 50;
 
 /** How long (ms) before an event is considered "old" and loses influence. */
-export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+export const EVENT_MEMORY_DECAY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// ─── Vocabulary Growth ──────────────────────────────────────────────────────
+
+/**
+ * Vocabulary tiers tied to life stages. As pets age, they can express
+ * themselves with increasingly complex language.
+ */
+export type VocabularyTier = 'none' | 'emote' | 'basic' | 'phrase' | 'full' | 'wise';
+
+export interface VocabularyTierConfig {
+  tier: VocabularyTier;
+  /** Life stages that map to this tier. */
+  stages: string[];
+  /** Max word count for bubble text at this tier. */
+  maxWords: number;
+}
+
+export const VOCABULARY_TIERS: VocabularyTierConfig[] = [
+  { tier: 'none', stages: ['egg'], maxWords: 0 },
+  { tier: 'emote', stages: ['blob'], maxWords: 0 },
+  { tier: 'basic', stages: ['juvenile'], maxWords: 2 },
+  { tier: 'phrase', stages: ['adolescent'], maxWords: 5 },
+  { tier: 'full', stages: ['adult'], maxWords: 10 },
+  { tier: 'wise', stages: ['elder'], maxWords: 15 },
+];
+
+/**
+ * Vocabulary-expanded bubble text variants by tier.
+ * Keys match need/feeling bubble keys. Each tier provides alternative text.
+ */
+export const VOCABULARY_BUBBLE_TEXT: Record<string, Partial<Record<VocabularyTier, string>>> = {
+  // Need bubbles
+  hungry: {
+    emote: '🍖',
+    basic: 'Hungry...',
+    phrase: 'I\'m so hungry!',
+    full: 'My tummy is rumbling, can I have something to eat?',
+    wise: 'A good meal nourishes the body and soul. I could use one.',
+  },
+  tired: {
+    emote: '💤',
+    basic: 'Sleepy...',
+    phrase: 'I need a nap...',
+    full: 'I\'m really tired, can we rest for a while?',
+    wise: 'Even the wisest need their rest. Time for sleep.',
+  },
+  dirty: {
+    emote: '🛁',
+    basic: 'Dirty...',
+    phrase: 'Need a bath!',
+    full: 'I\'m getting pretty grimy, bath time please?',
+    wise: 'Cleanliness brings comfort. A bath would be lovely.',
+  },
+  sick: {
+    emote: '🤒',
+    basic: 'Owie...',
+    phrase: 'Not feeling well...',
+    full: 'I don\'t feel good at all, can you help me?',
+    wise: 'This too shall pass, but some medicine would hasten the journey.',
+  },
+  lonely: {
+    emote: '💔',
+    basic: 'Play?',
+    phrase: 'Play with me?',
+    full: 'I\'ve been alone for a while, let\'s hang out!',
+    wise: 'The warmth of companionship is the greatest treasure.',
+  },
+  stressed: {
+    emote: '😰',
+    basic: 'Scared...',
+    phrase: 'I\'m anxious...',
+    full: 'Everything feels overwhelming right now.',
+    wise: 'A calm mind weathers any storm. But comfort helps.',
+  },
+  // Feeling bubbles
+  happy: {
+    emote: '😊',
+    basic: 'Happy!',
+    phrase: 'I\'m so happy!',
+    full: 'What a wonderful day, I feel great!',
+    wise: 'Joy is the simplest proof that life is good.',
+  },
+  bored: {
+    emote: '😑',
+    basic: 'Bored...',
+    phrase: 'Nothing to do...',
+    full: 'I\'m so bored, let\'s do something fun!',
+    wise: 'An idle mind seeks stimulation. Shall we explore?',
+  },
+  anxious: {
+    emote: '😟',
+    basic: 'Scared...',
+    phrase: 'I\'m worried...',
+    full: 'Something doesn\'t feel right, I\'m nervous.',
+    wise: 'Worry clouds the present. Let us find peace together.',
+  },
+  playful: {
+    emote: '⭐',
+    basic: 'Play!',
+    phrase: 'Let\'s play!',
+    full: 'I\'m feeling energetic, let\'s have some fun!',
+    wise: 'The spirit of play keeps us forever young.',
+  },
+  grumpy: {
+    emote: '😤',
+    basic: 'Hmph!',
+    phrase: 'Leave me alone!',
+    full: 'I\'m in a bad mood, everything is annoying.',
+    wise: 'Even grumpiness has wisdom — it says something needs to change.',
+  },
+  affectionate: {
+    emote: '❤️',
+    basic: 'Love!',
+    phrase: 'Love you!',
+    full: 'You\'re the best friend I could ever have!',
+    wise: 'In all my years, our bond remains my greatest joy.',
+  },
+  rebellious: {
+    emote: '😈',
+    basic: 'No!',
+    phrase: 'No way!',
+    full: 'You can\'t tell me what to do, I make my own rules!',
+    wise: 'No way!',
+  },
+};

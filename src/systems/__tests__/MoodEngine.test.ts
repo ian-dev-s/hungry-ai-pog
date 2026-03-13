@@ -96,10 +96,10 @@ describe('MoodEngine', () => {
     });
 
     it('should trim memory to max size', () => {
-      for (let i = 0; i < 25; i++) {
+      for (let i = 0; i < 55; i++) {
         engine.recordEvent(pet, 'played_game');
       }
-      expect(pet.communication.memory.length).toBe(20);
+      expect(pet.communication.memory.length).toBe(50);
     });
 
     it('should update dominant mood after event', () => {
