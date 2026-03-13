@@ -5,6 +5,50 @@
 
 export const CURRENT_SAVE_VERSION = 2;
 
+export type TrainingSkill = 'obedience' | 'tricks' | 'agility';
+
+export interface TrainingState {
+  /** Accumulated session count today (resets daily). */
+  sessionsToday: number;
+  /** Timestamp of the last completed training session. */
+  lastSessionTimestamp: number;
+  /** Cumulative overtraining fatigue (0-100). Decays over time. */
+  fatigue: number;
+  /** Skill proficiency levels (0-100). */
+  skills: Record<TrainingSkill, number>;
+}
+
+export type BathPhase = 'idle' | 'scrub' | 'rinse' | 'dry' | 'done';
+export type WaterTemperature = 'cold' | 'warm' | 'hot';
+
+export interface HygieneState {
+  /** Current dirt level (0-100). Higher = dirtier. */
+  dirtLevel: number;
+  /** Current phase if a bath is in progress. */
+  bathPhase: BathPhase;
+  /** Progress within the current bath phase (0-100). */
+  bathProgress: number;
+  /** Whether pet has been groomed (juvenile+ only). */
+  groomed: boolean;
+  /** Timestamp of last bath. */
+  lastBathTimestamp: number;
+}
+
+export type SleepPhase = 'awake' | 'drowsy' | 'light' | 'deep' | 'dream';
+
+export interface SleepState {
+  /** Current sleep phase. */
+  phase: SleepPhase;
+  /** Timestamp when current sleep session started (0 if awake). */
+  sleepStartTimestamp: number;
+  /** Whether a nightlight is active. */
+  nightlightOn: boolean;
+  /** Current dream mood icon (null if not dreaming). */
+  dreamMood: string | null;
+  /** Whether sleep was forced (player put pet to bed vs natural). */
+  wasForced: boolean;
+}
+
 export interface PetState {
   name: string;
   elementType: string;
@@ -34,6 +78,9 @@ export interface PetState {
     bondAvg: number;
     secretFlags: Record<string, boolean>;
   };
+  training: TrainingState;
+  hygieneCare: HygieneState;
+  sleep: SleepState;
 }
 
 export interface InventoryItem {
@@ -112,6 +159,35 @@ export interface SaveData {
   dailyStreak: {
     count: number;
     lastCheckIn: number;
+  };
+}
+
+export function createDefaultTrainingState(): TrainingState {
+  return {
+    sessionsToday: 0,
+    lastSessionTimestamp: 0,
+    fatigue: 0,
+    skills: { obedience: 0, tricks: 0, agility: 0 },
+  };
+}
+
+export function createDefaultHygieneState(): HygieneState {
+  return {
+    dirtLevel: 0,
+    bathPhase: 'idle',
+    bathProgress: 0,
+    groomed: false,
+    lastBathTimestamp: 0,
+  };
+}
+
+export function createDefaultSleepState(): SleepState {
+  return {
+    phase: 'awake',
+    sleepStartTimestamp: 0,
+    nightlightOn: false,
+    dreamMood: null,
+    wasForced: false,
   };
 }
 

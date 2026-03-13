@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StatsEngine } from '../StatsEngine';
-import { PetState } from '../../data/SaveSchema';
+import {
+  PetState,
+  createDefaultTrainingState,
+  createDefaultHygieneState,
+  createDefaultSleepState,
+} from '../../data/SaveSchema';
 import {
   STAT_MAX,
   STAT_MIN,
@@ -30,6 +35,9 @@ function createTestPet(overrides?: Partial<PetState>): PetState {
     evolutionPath: null,
     birthTimestamp: Date.now(),
     stageStartTimestamp: Date.now(),
+    training: createDefaultTrainingState(),
+    hygieneCare: createDefaultHygieneState(),
+    sleep: createDefaultSleepState(),
     ...overrides,
   };
 }

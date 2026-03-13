@@ -3,6 +3,9 @@ import { SaveManager } from '../SaveManager';
 import {
   CURRENT_SAVE_VERSION,
   createDefaultSave,
+  createDefaultTrainingState,
+  createDefaultHygieneState,
+  createDefaultSleepState,
 } from '../../data/SaveSchema';
 
 /** Minimal in-memory Storage implementation for tests. */
@@ -112,6 +115,9 @@ describe('SaveManager', () => {
         evolutionPath: null,
         birthTimestamp: Date.now(),
         stageStartTimestamp: Date.now(),
+        training: createDefaultTrainingState(),
+        hygieneCare: createDefaultHygieneState(),
+        sleep: createDefaultSleepState(),
       };
       manager.update(defaultSave);
       manager.updatePet({ name: 'Sparkle' });
