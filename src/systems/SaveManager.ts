@@ -8,6 +8,7 @@ import {
   CURRENT_SAVE_VERSION,
   createDefaultSave,
 } from '../data/SaveSchema';
+import type { EggState } from '../data/EggConfig';
 
 export type SaveEventType =
   | 'save'
@@ -35,6 +36,9 @@ export class SaveManager {
   constructor(storage: Storage = localStorage) {
     this.storage = storage;
     this.state = createDefaultSave();
+    this.registerMigration(3, (data) => {
+      return { ...data, egg: null };
+    });
   }
 
   /** Register a migration from version N to N+1. */
@@ -59,6 +63,17 @@ export class SaveManager {
       Object.assign(this.state.pet, partial);
       this.save();
     }
+  }
+
+  /** Save or clear the in-progress egg state. */
+  updateEgg(egg: EggState | null): void {
+    this.state.egg = egg;
+    this.save();
+  }
+
+  /** Get the current egg state, or null if no egg in progress. */
+  getEgg(): EggState | null {
+    return this.state.egg ? { ...this.state.egg } as EggState : null;
   }
 
   /** Save current state to localStorage. */
