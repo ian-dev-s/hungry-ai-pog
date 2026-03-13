@@ -7,7 +7,10 @@ const renderer = new Renderer('game-canvas', 480, 640);
 const sceneManager = new SceneManager();
 
 const titleScene = new TitleScene(() => sceneManager.switchTo('game'));
-const gameScene = new GameScene(() => sceneManager.switchTo('menu'));
+const gameScene = new GameScene(
+  () => sceneManager.switchTo('menu'),
+  () => sceneManager.switchTo('kitchen'),
+);
 const menuScene = new MenuScene(
   () => sceneManager.switchTo('game'),
   () => sceneManager.switchTo('title'),
