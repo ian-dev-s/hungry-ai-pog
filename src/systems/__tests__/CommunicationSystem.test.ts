@@ -261,6 +261,78 @@ describe('CommunicationSystem', () => {
     });
   });
 
+  describe('vocabulary growth', () => {
+    it('should return only baby phrases for baby pets', () => {
+      const babyPet = createTestPet({ lifeStage: 'baby' });
+      const vocab = commSystem.getVocabulary(babyPet);
+
+      // Baby tier only
+      expect(vocab.need).toEqual(['...!', 'Wah!', 'Mm!']);
+      expect(vocab.affection).toEqual(['~', '♡']);
+    });
+
+    it('should accumulate phrases for child pets (baby + child)', () => {
+      const childPet = createTestPet({ lifeStage: 'child' });
+      const vocab = commSystem.getVocabulary(childPet);
+
+      // Baby + child tiers
+      expect(vocab.need).toContain('...!'); // baby
+      expect(vocab.need).toContain('Hungry...'); // child
+      expect(vocab.need.length).toBe(6); // 3 baby + 3 child
+    });
+
+    it('should accumulate all tiers for adult pets', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      const vocab = commSystem.getVocabulary(adultPet);
+
+      // baby + child + adolescent + adult
+      expect(vocab.need).toContain('...!'); // baby
+      expect(vocab.need).toContain('Hungry...'); // child
+      expect(vocab.need).toContain("I'm starving!"); // adolescent
+      expect(vocab.need).toContain('Could use a snack'); // adult
+    });
+
+    it('should include elder phrases for elder pets', () => {
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+      const vocab = commSystem.getVocabulary(elderPet);
+
+      expect(vocab.affection).toContain('All these years together...');
+      expect(vocab.feeling).toContain('Ah, what a peaceful day');
+    });
+
+    it('should apply vocabulary to speech bubbles via checkForBubble', () => {
+      const babyPet = createTestPet({ lifeStage: 'baby' });
+      babyPet.communication.lastBubbleTimestamp = 0;
+      babyPet.stats.hunger = 10;
+
+      const vocab = commSystem.getVocabulary(babyPet);
+      const bubble = commSystem.checkForBubble(babyPet, Date.now());
+
+      expect(bubble).not.toBeNull();
+      // The text should be from the baby vocabulary for need category
+      expect(vocab.need).toContain(bubble!.text);
+    });
+
+    it('should use default (baby) vocabulary for unknown life stages', () => {
+      const unknownPet = createTestPet({ lifeStage: 'egg' as string });
+      const vocab = commSystem.getVocabulary(unknownPet);
+
+      expect(vocab.need).toEqual(['...!', 'Wah!', 'Mm!']);
+    });
+
+    it('should have richer vocabulary for older pets', () => {
+      const babyPet = createTestPet({ lifeStage: 'baby' });
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+
+      const babyVocab = commSystem.getVocabulary(babyPet);
+      const elderVocab = commSystem.getVocabulary(elderPet);
+
+      for (const category of ['need', 'feeling', 'request', 'affection', 'rebellion'] as const) {
+        expect(elderVocab[category].length).toBeGreaterThan(babyVocab[category].length);
+      }
+    });
+  });
+
   describe('social pet communication', () => {
     it('should communicate more frequently for social pets', () => {
       const socialPet = createTestPet({

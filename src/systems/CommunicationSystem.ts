@@ -17,6 +17,7 @@ import {
   type MoodType,
   type SpeechBubble,
   type BubbleCategory,
+  type LifeStageVocab,
   NEED_BUBBLES,
   FEELING_BUBBLES,
   REQUEST_BUBBLES,
@@ -25,6 +26,8 @@ import {
   TALK_HAPPINESS_BOOST,
   TALK_STRESS_REDUCTION,
   TALK_COOLDOWN,
+  VOCABULARY_TIERS,
+  LIFE_STAGE_ORDER,
 } from '../data/PersonalityConfig';
 import { MoodEngine } from './MoodEngine';
 import { PersonalitySystem } from './PersonalitySystem';
@@ -101,7 +104,7 @@ export class CommunicationSystem {
 
     // Pick highest priority bubble
     candidates.sort((a, b) => b.priority - a.priority);
-    const bubble = candidates[0];
+    const bubble = this.applyVocabulary(candidates[0], pet);
 
     pet.communication.lastBubbleTimestamp = now;
     return bubble;
@@ -160,6 +163,47 @@ export class CommunicationSystem {
     }
 
     return bubbles;
+  }
+
+  /**
+   * Get the available vocabulary pool for a pet based on its life stage.
+   * Pets accumulate phrases from all tiers up to and including their current stage.
+   */
+  getVocabulary(pet: PetState): Record<BubbleCategory, string[]> {
+    const stageIndex = LIFE_STAGE_ORDER.indexOf(pet.lifeStage as LifeStageVocab);
+    const effectiveIndex = stageIndex === -1 ? 0 : stageIndex;
+
+    const vocab: Record<BubbleCategory, string[]> = {
+      need: [],
+      feeling: [],
+      request: [],
+      affection: [],
+      rebellion: [],
+    };
+
+    for (const tier of VOCABULARY_TIERS) {
+      const tierIndex = LIFE_STAGE_ORDER.indexOf(tier.minStage);
+      if (tierIndex <= effectiveIndex) {
+        for (const category of Object.keys(vocab) as BubbleCategory[]) {
+          vocab[category].push(...(tier.phrases[category] ?? []));
+        }
+      }
+    }
+
+    return vocab;
+  }
+
+  /**
+   * Apply vocabulary-appropriate text to a speech bubble.
+   * Replaces the bubble's text with a phrase from the pet's vocabulary pool.
+   */
+  private applyVocabulary(bubble: SpeechBubble, pet: PetState): SpeechBubble {
+    const vocab = this.getVocabulary(pet);
+    const phrases = vocab[bubble.category];
+    if (phrases.length === 0) return bubble;
+
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    return { ...bubble, text: phrase };
   }
 
   private getMemoryBasedRequests(pet: PetState): SpeechBubble[] {
