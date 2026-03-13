@@ -285,4 +285,87 @@ describe('CommunicationSystem', () => {
       expect(normalBubble).toBeNull();
     });
   });
+
+  describe('vocabulary growth', () => {
+    it('should return babble tier for blob pets', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      expect(commSystem.getVocabularyTier(blobPet)).toBe('babble');
+    });
+
+    it('should return simple tier for juvenile pets', () => {
+      const juvenilePet = createTestPet({ lifeStage: 'juvenile' });
+      expect(commSystem.getVocabularyTier(juvenilePet)).toBe('simple');
+    });
+
+    it('should return basic tier for adolescent pets', () => {
+      const adolescentPet = createTestPet({ lifeStage: 'adolescent' });
+      expect(commSystem.getVocabularyTier(adolescentPet)).toBe('basic');
+    });
+
+    it('should return fluent tier for adult pets', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      expect(commSystem.getVocabularyTier(adultPet)).toBe('fluent');
+    });
+
+    it('should return eloquent tier for elder pets', () => {
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+      expect(commSystem.getVocabularyTier(elderPet)).toBe('eloquent');
+    });
+
+    it('should use simple vocabulary for hungry juvenile pet', () => {
+      pet.lifeStage = 'juvenile';
+      pet.stats.hunger = 10;
+      pet.communication.lastBubbleTimestamp = Date.now() - 200000;
+
+      const bubble = commSystem.checkForBubble(pet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe('Hungry...');
+    });
+
+    it('should use fluent vocabulary for hungry adult pet', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      adultPet.stats.hunger = 10;
+      adultPet.communication.lastBubbleTimestamp = Date.now() - 200000;
+
+      const bubble = commSystem.checkForBubble(adultPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe('Could I have some food?');
+    });
+
+    it('should use babble vocabulary for blob pets', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      blobPet.stats.hunger = 10;
+      blobPet.communication.lastBubbleTimestamp = Date.now() - 200000;
+
+      const bubble = commSystem.checkForBubble(blobPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe('...');
+    });
+
+    it('should use eloquent vocabulary for elder pets', () => {
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+      elderPet.stats.hunger = 10;
+      elderPet.communication.lastBubbleTimestamp = Date.now() - 200000;
+
+      const bubble = commSystem.checkForBubble(elderPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe("I'd love a meal, if you have a moment.");
+    });
+
+    it('should apply vocabulary to feeling bubbles', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      adultPet.communication.lastBubbleTimestamp = Date.now() - 200000;
+      // Trigger playful mood
+      moodEngine.recordEvent(adultPet, 'played_game');
+
+      const bubble = commSystem.checkForBubble(adultPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe("I'm in the mood for a game!");
+    });
+
+    it('should default to babble for unknown life stages', () => {
+      const unknownPet = createTestPet({ lifeStage: 'unknown' as any });
+      expect(commSystem.getVocabularyTier(unknownPet)).toBe('babble');
+    });
+  });
 });

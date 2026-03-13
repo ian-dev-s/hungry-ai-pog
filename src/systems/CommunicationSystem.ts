@@ -17,6 +17,7 @@ import {
   type MoodType,
   type SpeechBubble,
   type BubbleCategory,
+  type VocabularyTier,
   NEED_BUBBLES,
   FEELING_BUBBLES,
   REQUEST_BUBBLES,
@@ -25,6 +26,8 @@ import {
   TALK_HAPPINESS_BOOST,
   TALK_STRESS_REDUCTION,
   TALK_COOLDOWN,
+  VOCABULARY_TIERS,
+  VOCABULARY_VARIANTS,
 } from '../data/PersonalityConfig';
 import { MoodEngine } from './MoodEngine';
 import { PersonalitySystem } from './PersonalitySystem';
@@ -131,6 +134,27 @@ export class CommunicationSystem {
     return Math.max(0, TALK_COOLDOWN - elapsed);
   }
 
+  /**
+   * Get the vocabulary tier for a pet based on its life stage.
+   */
+  getVocabularyTier(pet: PetState): VocabularyTier {
+    return VOCABULARY_TIERS[pet.lifeStage] ?? 'babble';
+  }
+
+  /**
+   * Apply vocabulary tier to a speech bubble, replacing its text
+   * with the age-appropriate variant if one exists.
+   */
+  applyVocabulary(bubble: SpeechBubble, pet: PetState): SpeechBubble {
+    const tier = this.getVocabularyTier(pet);
+    // Look up the bubble key by matching against known keys
+    const key = this.getBubbleVocabKey(bubble);
+    if (key && VOCABULARY_VARIANTS[key]) {
+      return { ...bubble, text: VOCABULARY_VARIANTS[key][tier] };
+    }
+    return bubble;
+  }
+
   private gatherCandidateBubbles(pet: PetState): SpeechBubble[] {
     const bubbles: SpeechBubble[] = [];
 
@@ -159,7 +183,27 @@ export class CommunicationSystem {
       bubbles.push(affection.bubble);
     }
 
-    return bubbles;
+    // Apply vocabulary tier to all bubbles
+    return bubbles.map((b) => this.applyVocabulary(b, pet));
+  }
+
+  /**
+   * Map a speech bubble back to its vocabulary key by matching icon against known bubbles.
+   */
+  private getBubbleVocabKey(bubble: SpeechBubble): string | null {
+    // Check need bubbles
+    for (const [key, needBubble] of Object.entries(NEED_BUBBLES)) {
+      if (bubble.icon === needBubble.icon && bubble.category === 'need') return key;
+    }
+    // Check feeling bubbles
+    for (const [key, feelBubble] of Object.entries(FEELING_BUBBLES)) {
+      if (bubble.icon === feelBubble.icon && bubble.category === 'feeling') return key;
+    }
+    // Check affection bubbles — map to 'affectionate'
+    if (bubble.category === 'affection') return 'affectionate';
+    // Check rebellion bubbles — map to 'rebellious'
+    if (bubble.category === 'rebellion') return 'rebellious';
+    return null;
   }
 
   private getMemoryBasedRequests(pet: PetState): SpeechBubble[] {
