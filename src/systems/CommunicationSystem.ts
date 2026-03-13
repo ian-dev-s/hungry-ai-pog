@@ -17,6 +17,7 @@ import {
   type MoodType,
   type SpeechBubble,
   type BubbleCategory,
+  type VocabularyTier,
   NEED_BUBBLES,
   FEELING_BUBBLES,
   REQUEST_BUBBLES,
@@ -25,6 +26,7 @@ import {
   TALK_HAPPINESS_BOOST,
   TALK_STRESS_REDUCTION,
   TALK_COOLDOWN,
+  VOCABULARY_TIERS,
 } from '../data/PersonalityConfig';
 import { MoodEngine } from './MoodEngine';
 import { PersonalitySystem } from './PersonalitySystem';
@@ -131,6 +133,52 @@ export class CommunicationSystem {
     return Math.max(0, TALK_COOLDOWN - elapsed);
   }
 
+  /**
+   * Get the vocabulary tier for the pet's current life stage.
+   * Determines which bubble categories and text variants are available.
+   */
+  getVocabularyTier(pet: PetState): VocabularyTier {
+    const stage = pet.lifeStage;
+    const tier = VOCABULARY_TIERS.find((t) => t.stages.includes(stage));
+    // Default to the most basic tier if stage is unknown
+    return tier ?? VOCABULARY_TIERS[0];
+  }
+
+  /**
+   * Apply vocabulary tier text overrides to a speech bubble.
+   * Returns a new bubble with text adjusted for the pet's vocabulary level.
+   */
+  applyVocabulary(bubble: SpeechBubble, pet: PetState): SpeechBubble | null {
+    const tier = this.getVocabularyTier(pet);
+
+    // Filter out bubbles from categories the pet hasn't unlocked yet
+    if (!tier.categories.includes(bubble.category)) {
+      return null;
+    }
+
+    // Apply text overrides for need bubbles
+    if (bubble.category === 'need') {
+      const needKey = Object.entries(NEED_BUBBLES).find(
+        ([, b]) => b.icon === bubble.icon,
+      )?.[0];
+      if (needKey && tier.needTexts[needKey]) {
+        return { ...bubble, text: tier.needTexts[needKey]! };
+      }
+    }
+
+    // Apply text overrides for feeling bubbles
+    if (bubble.category === 'feeling') {
+      const moodKey = Object.entries(FEELING_BUBBLES).find(
+        ([, b]) => b.icon === bubble.icon,
+      )?.[0] as MoodType | undefined;
+      if (moodKey && tier.feelingTexts[moodKey]) {
+        return { ...bubble, text: tier.feelingTexts[moodKey]! };
+      }
+    }
+
+    return bubble;
+  }
+
   private gatherCandidateBubbles(pet: PetState): SpeechBubble[] {
     const bubbles: SpeechBubble[] = [];
 
@@ -159,7 +207,13 @@ export class CommunicationSystem {
       bubbles.push(affection.bubble);
     }
 
-    return bubbles;
+    // Apply vocabulary tier filtering and text overrides
+    const filtered: SpeechBubble[] = [];
+    for (const bubble of bubbles) {
+      const adjusted = this.applyVocabulary(bubble, pet);
+      if (adjusted) filtered.push(adjusted);
+    }
+    return filtered;
   }
 
   private getMemoryBasedRequests(pet: PetState): SpeechBubble[] {

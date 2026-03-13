@@ -267,3 +267,101 @@ export const MAX_MEMORY_EVENTS = 20;
 
 /** How long (ms) before an event is considered "old" and loses influence. */
 export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// ─── Vocabulary Growth ─────────────────────────────────────────────────────
+
+/**
+ * Vocabulary tiers keyed by life stage.
+ * Each tier defines which bubble categories the pet can use and
+ * expanded text variants for need/feeling bubbles.
+ * Earlier stages use simpler, shorter text; later stages use richer language.
+ */
+export interface VocabularyTier {
+  /** Life stages that use this tier. */
+  stages: string[];
+  /** Bubble categories available at this tier. */
+  categories: BubbleCategory[];
+  /** Override texts for need bubbles at this vocabulary level. */
+  needTexts: Partial<Record<string, string>>;
+  /** Override texts for feeling bubbles at this vocabulary level. */
+  feelingTexts: Partial<Record<MoodType, string>>;
+}
+
+export const VOCABULARY_TIERS: VocabularyTier[] = [
+  {
+    stages: ['egg', 'blob'],
+    categories: ['need'],
+    needTexts: {
+      hungry: '...',
+      tired: '...',
+      dirty: '...',
+      sick: '...',
+      lonely: '...',
+      stressed: '...',
+    },
+    feelingTexts: {},
+  },
+  {
+    stages: ['juvenile'],
+    categories: ['need', 'feeling'],
+    needTexts: {
+      hungry: 'Hungry!',
+      tired: 'Sleepy!',
+      dirty: 'Dirty!',
+      sick: 'Owie...',
+      lonely: 'Play?',
+      stressed: 'Scared!',
+    },
+    feelingTexts: {
+      happy: 'Yay!',
+      bored: 'Bored!',
+      anxious: 'Eep!',
+      playful: 'Play!',
+      grumpy: 'Hmph!',
+      affectionate: 'Like you!',
+      rebellious: 'No!',
+    },
+  },
+  {
+    stages: ['adolescent'],
+    categories: ['need', 'feeling', 'request', 'rebellion'],
+    needTexts: {
+      hungry: 'Hungry...',
+      tired: 'Sleepy...',
+      dirty: 'Need bath...',
+      sick: 'Not feeling well...',
+      lonely: 'Play with me?',
+      stressed: 'Anxious...',
+    },
+    feelingTexts: {
+      happy: 'Happy!',
+      bored: 'Bored...',
+      anxious: 'Scared...',
+      playful: "Let's play!",
+      grumpy: 'Hmph!',
+      affectionate: 'Love you!',
+      rebellious: 'No way!',
+    },
+  },
+  {
+    stages: ['adult', 'elder'],
+    categories: ['need', 'feeling', 'request', 'affection', 'rebellion'],
+    needTexts: {
+      hungry: "I'm getting hungry...",
+      tired: 'Could use a nap...',
+      dirty: 'A bath would be nice!',
+      sick: "I don't feel so good...",
+      lonely: 'I miss spending time together!',
+      stressed: "I'm feeling on edge...",
+    },
+    feelingTexts: {
+      happy: "I'm so happy right now!",
+      bored: 'There must be something fun to do...',
+      anxious: "Something doesn't feel right...",
+      playful: "Let's do something fun together!",
+      grumpy: 'Leave me alone for a bit...',
+      affectionate: "You're the best friend ever!",
+      rebellious: "I can make my own decisions!",
+    },
+  },
+];
