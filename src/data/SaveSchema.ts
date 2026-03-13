@@ -82,6 +82,16 @@ export interface GameSettings {
   difficulty: 'casual' | 'classic';
 }
 
+export interface FeedingStateData {
+  fullness: number;
+  mealHistory: {
+    foodId: string;
+    timestamp: number;
+    reaction: string;
+  }[];
+  lastFedTimestamp: number;
+}
+
 export interface SaveData {
   version: number;
   pet: PetState | null;
@@ -90,6 +100,7 @@ export interface SaveData {
   unlocks: UnlockState;
   familyTree: FamilyTreeEntry[];
   coins: number;
+  feeding: FeedingStateData;
   settings: GameSettings;
   timestamps: {
     created: number;
@@ -123,6 +134,11 @@ export function createDefaultSave(): SaveData {
     },
     familyTree: [],
     coins: 0,
+    feeding: {
+      fullness: 50,
+      mealHistory: [],
+      lastFedTimestamp: now,
+    },
     settings: {
       musicVolume: 0.7,
       sfxVolume: 0.8,

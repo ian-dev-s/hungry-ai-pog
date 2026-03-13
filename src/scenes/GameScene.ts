@@ -5,9 +5,11 @@ export class GameScene implements Scene {
   readonly name = 'game';
   private elapsed = 0;
   private onMenu: () => void;
+  private onKitchen: () => void;
 
-  constructor(onMenu: () => void) {
+  constructor(onMenu: () => void, onKitchen: () => void) {
     this.onMenu = onMenu;
+    this.onKitchen = onKitchen;
   }
 
   enter(): void {
@@ -21,6 +23,7 @@ export class GameScene implements Scene {
 
   private handleKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.onMenu();
+    if (e.key === 'k' || e.key === 'K') this.onKitchen();
   };
 
   update(dt: number): void {
@@ -57,6 +60,6 @@ export class GameScene implements Scene {
     ctx.textAlign = 'left';
     ctx.fillText('Game Scene - Your pet lives here!', 16, 30);
     ctx.textAlign = 'right';
-    ctx.fillText('ESC = Menu', width - 16, 30);
+    ctx.fillText('ESC=Menu  K=Kitchen', width - 16, 30);
   }
 }
