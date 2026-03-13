@@ -3,7 +3,7 @@
  * Version-tagged to support future migrations.
  */
 
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 
 export type TrainingSkill = 'obedience' | 'tricks' | 'agility';
 
@@ -54,6 +54,33 @@ export interface IllnessState {
   startTimestamp: number | null;
 }
 
+export interface MoodIntensity {
+  mood: string;
+  intensity: number;
+}
+
+export interface PetMemoryEvent {
+  type: string;
+  timestamp: number;
+  details?: string;
+}
+
+export interface MoodState {
+  /** Current mood intensities (composite — multiple can be active). */
+  moods: MoodIntensity[];
+  /** Dominant mood (highest intensity above threshold). */
+  dominantMood: string | null;
+}
+
+export interface CommunicationState {
+  /** Timestamp of last pet-initiated communication. */
+  lastBubbleTimestamp: number;
+  /** Timestamp of last player talk interaction. */
+  lastTalkTimestamp: number;
+  /** Recent events the pet remembers (influences behavior and requests). */
+  memory: PetMemoryEvent[];
+}
+
 export interface PetState {
   name: string;
   elementType: string;
@@ -87,6 +114,8 @@ export interface PetState {
   training: TrainingState;
   hygieneCare: HygieneState;
   sleep: SleepState;
+  mood: MoodState;
+  communication: CommunicationState;
 }
 
 export interface InventoryItem {
@@ -194,6 +223,21 @@ export function createDefaultSleepState(): SleepState {
     nightlightOn: false,
     dreamMood: null,
     wasForced: false,
+  };
+}
+
+export function createDefaultMoodState(): MoodState {
+  return {
+    moods: [],
+    dominantMood: null,
+  };
+}
+
+export function createDefaultCommunicationState(): CommunicationState {
+  return {
+    lastBubbleTimestamp: 0,
+    lastTalkTimestamp: 0,
+    memory: [],
   };
 }
 
