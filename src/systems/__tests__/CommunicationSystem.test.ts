@@ -261,6 +261,90 @@ describe('CommunicationSystem', () => {
     });
   });
 
+  describe('vocabulary growth', () => {
+    it('should return correct vocabulary tier for each life stage', () => {
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'egg' }))).toBe('none');
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'blob' }))).toBe('emote');
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'juvenile' }))).toBe('basic');
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'adolescent' }))).toBe('phrase');
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'adult' }))).toBe('full');
+      expect(commSystem.getVocabularyTier(createTestPet({ lifeStage: 'elder' }))).toBe('wise');
+    });
+
+    it('should produce no bubbles for egg stage', () => {
+      const eggPet = createTestPet({ lifeStage: 'egg' });
+      eggPet.stats.hunger = 10;
+      eggPet.communication.lastBubbleTimestamp = 0;
+
+      const bubble = commSystem.checkForBubble(eggPet, Date.now());
+      expect(bubble).toBeNull();
+    });
+
+    it('should produce icon-only text for blob stage', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      blobPet.stats.hunger = 10;
+      blobPet.communication.lastBubbleTimestamp = 0;
+
+      const bubble = commSystem.checkForBubble(blobPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe('🍖'); // emote tier returns icon as text
+    });
+
+    it('should produce short text for juvenile stage', () => {
+      const juvenilePet = createTestPet({ lifeStage: 'juvenile' });
+      juvenilePet.stats.hunger = 10;
+      juvenilePet.communication.lastBubbleTimestamp = 0;
+
+      const bubble = commSystem.checkForBubble(juvenilePet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toBe('Hungry...');
+    });
+
+    it('should produce longer text for adult stage', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      adultPet.stats.hunger = 10;
+      adultPet.communication.lastBubbleTimestamp = 0;
+
+      const bubble = commSystem.checkForBubble(adultPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toContain('tummy');
+    });
+
+    it('should produce wise text for elder stage', () => {
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+      elderPet.stats.hunger = 10;
+      elderPet.communication.lastBubbleTimestamp = 0;
+
+      const bubble = commSystem.checkForBubble(elderPet, Date.now());
+      expect(bubble).not.toBeNull();
+      expect(bubble!.text).toContain('nourishes');
+    });
+
+    it('should not produce request bubbles for blob (emote) tier', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      blobPet.stats.hunger = 40;
+      blobPet.communication.memory.push(
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+      );
+
+      const bubbles = commSystem.getCandidateBubbles(blobPet);
+      const foodRequest = bubbles.find((b) => b.text.includes('apple'));
+      expect(foodRequest).toBeUndefined();
+    });
+
+    it('should apply vocabulary to feeling bubbles', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      adultPet.communication.lastBubbleTimestamp = 0;
+      moodEngine.recordEvent(adultPet, 'played_game');
+
+      const bubbles = commSystem.getCandidateBubbles(adultPet);
+      const playfulBubble = bubbles.find((b) => b.category === 'feeling' && b.icon === '⭐');
+      expect(playfulBubble).toBeDefined();
+      expect(playfulBubble!.text).toContain('energetic');
+    });
+  });
+
   describe('social pet communication', () => {
     it('should communicate more frequently for social pets', () => {
       const socialPet = createTestPet({
