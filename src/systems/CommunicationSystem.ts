@@ -17,6 +17,7 @@ import {
   type MoodType,
   type SpeechBubble,
   type BubbleCategory,
+  type LifeStage,
   NEED_BUBBLES,
   FEELING_BUBBLES,
   REQUEST_BUBBLES,
@@ -25,6 +26,8 @@ import {
   TALK_HAPPINESS_BOOST,
   TALK_STRESS_REDUCTION,
   TALK_COOLDOWN,
+  VOCABULARY_BY_STAGE,
+  LIFE_STAGE_ORDER,
 } from '../data/PersonalityConfig';
 import { MoodEngine } from './MoodEngine';
 import { PersonalitySystem } from './PersonalitySystem';
@@ -131,25 +134,45 @@ export class CommunicationSystem {
     return Math.max(0, TALK_COOLDOWN - elapsed);
   }
 
+  /**
+   * Adapt a speech bubble's text to the pet's current life stage vocabulary.
+   * Falls back to the original bubble text if no stage-specific text exists.
+   */
+  adaptBubbleToStage(bubble: SpeechBubble, pet: PetState, key: string): SpeechBubble {
+    const stage = pet.lifeStage as LifeStage;
+    const vocab = VOCABULARY_BY_STAGE[stage];
+    if (!vocab || !vocab[key]) return bubble;
+    return { ...bubble, text: vocab[key] };
+  }
+
+  /**
+   * Get the effective life stage for vocabulary purposes.
+   * Returns the stage name if recognized, otherwise defaults to 'adult'.
+   */
+  getVocabStage(pet: PetState): LifeStage {
+    const stage = pet.lifeStage as LifeStage;
+    return LIFE_STAGE_ORDER.includes(stage) ? stage : 'adult';
+  }
+
   private gatherCandidateBubbles(pet: PetState): SpeechBubble[] {
     const bubbles: SpeechBubble[] = [];
 
-    // Need-based bubbles
-    if (pet.stats.hunger < 25) bubbles.push(NEED_BUBBLES.hungry);
-    if (pet.stats.energy < 20) bubbles.push(NEED_BUBBLES.tired);
-    if (pet.stats.hygiene < 20) bubbles.push(NEED_BUBBLES.dirty);
-    if (pet.illness.type !== null) bubbles.push(NEED_BUBBLES.sick);
-    if (pet.stats.bond < 25) bubbles.push(NEED_BUBBLES.lonely);
-    if (pet.hiddenStats.stress > 70) bubbles.push(NEED_BUBBLES.stressed);
+    // Need-based bubbles (adapted to life stage vocabulary)
+    if (pet.stats.hunger < 25) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.hungry, pet, 'hungry'));
+    if (pet.stats.energy < 20) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.tired, pet, 'tired'));
+    if (pet.stats.hygiene < 20) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.dirty, pet, 'dirty'));
+    if (pet.illness.type !== null) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.sick, pet, 'sick'));
+    if (pet.stats.bond < 25) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.lonely, pet, 'lonely'));
+    if (pet.hiddenStats.stress > 70) bubbles.push(this.adaptBubbleToStage(NEED_BUBBLES.stressed, pet, 'stressed'));
 
-    // Feeling-based bubbles from mood
+    // Feeling-based bubbles from mood (adapted to life stage vocabulary)
     const activeMoods = this.moodEngine.getActiveMoods(pet);
     for (const { mood } of activeMoods) {
       const bubble = FEELING_BUBBLES[mood];
-      if (bubble) bubbles.push(bubble);
+      if (bubble) bubbles.push(this.adaptBubbleToStage(bubble, pet, mood));
     }
 
-    // Request bubbles from memory
+    // Request bubbles from memory (adapted to life stage vocabulary)
     const requestBubbles = this.getMemoryBasedRequests(pet);
     bubbles.push(...requestBubbles);
 
@@ -177,9 +200,10 @@ export class CommunicationSystem {
     if (foodCounts.size > 0) {
       const favoriteFood = [...foodCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
       if (pet.stats.hunger < 50) {
+        const adapted = this.adaptBubbleToStage(REQUEST_BUBBLES.favorite_food, pet, 'favorite_food');
         requests.push({
-          ...REQUEST_BUBBLES.favorite_food,
-          text: REQUEST_BUBBLES.favorite_food.text.replace('{food}', favoriteFood),
+          ...adapted,
+          text: adapted.text.replace('{food}', favoriteFood),
         });
       }
     }
@@ -196,9 +220,10 @@ export class CommunicationSystem {
       const favoriteGame = [...gameCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
       const boredom = this.moodEngine.getMoodIntensity(pet, 'bored');
       if (boredom > 10) {
+        const adapted = this.adaptBubbleToStage(REQUEST_BUBBLES.favorite_game, pet, 'favorite_game');
         requests.push({
-          ...REQUEST_BUBBLES.favorite_game,
-          text: REQUEST_BUBBLES.favorite_game.text.replace('{game}', favoriteGame),
+          ...adapted,
+          text: adapted.text.replace('{game}', favoriteGame),
         });
       }
     }

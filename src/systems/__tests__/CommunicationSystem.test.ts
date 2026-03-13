@@ -261,6 +261,91 @@ describe('CommunicationSystem', () => {
     });
   });
 
+  describe('vocabulary growth by life stage', () => {
+    it('should use juvenile vocabulary for juvenile pets', () => {
+      pet.lifeStage = 'juvenile';
+      pet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('Food!');
+    });
+
+    it('should use adolescent vocabulary for adolescent pets', () => {
+      pet.lifeStage = 'adolescent';
+      pet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('Hungry...');
+    });
+
+    it('should use adult vocabulary for adult pets', () => {
+      pet.lifeStage = 'adult';
+      pet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe("I'm getting hungry!");
+    });
+
+    it('should use elder vocabulary for elder pets', () => {
+      pet.lifeStage = 'elder';
+      pet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('A nice meal would be lovely.');
+    });
+
+    it('should use minimal vocabulary for egg stage', () => {
+      pet.lifeStage = 'egg';
+      pet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('...');
+    });
+
+    it('should adapt feeling bubbles to life stage', () => {
+      pet.lifeStage = 'adult';
+      // Trigger playful mood
+      moodEngine.recordEvent(pet, 'played_game');
+      moodEngine.recordEvent(pet, 'played_game');
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const playfulBubble = bubbles.find((b) => b.icon === '⭐');
+      if (playfulBubble) {
+        expect(playfulBubble.text).toBe("Let's do something fun!");
+      }
+    });
+
+    it('should adapt request bubbles with food name to life stage', () => {
+      pet.lifeStage = 'elder';
+      pet.stats.hunger = 40;
+      pet.communication.memory.push(
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+      );
+
+      const bubbles = commSystem.getCandidateBubbles(pet);
+      const foodRequest = bubbles.find((b) => b.text.includes('apple'));
+      expect(foodRequest).toBeDefined();
+      expect(foodRequest!.text).toBe("I'd love some apple, for old times' sake.");
+    });
+
+    it('should fall back to adult vocabulary for unknown life stages', () => {
+      pet.lifeStage = 'unknown_stage';
+      const stage = commSystem.getVocabStage(pet);
+      expect(stage).toBe('adult');
+    });
+  });
+
   describe('social pet communication', () => {
     it('should communicate more frequently for social pets', () => {
       const socialPet = createTestPet({
