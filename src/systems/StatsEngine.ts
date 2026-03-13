@@ -13,6 +13,7 @@ import {
   getDecayRate,
   getStatInteractions,
 } from '../data/StatsConfig';
+import { IllnessEngine } from './IllnessEngine';
 
 function clampStat(value: number): number {
   return Math.max(STAT_MIN, Math.min(STAT_MAX, value));
@@ -29,12 +30,22 @@ const VISIBLE_STATS: StatName[] = [
 ];
 
 export class StatsEngine {
+  private illnessEngine: IllnessEngine;
+
+  constructor() {
+    this.illnessEngine = new IllnessEngine();
+  }
+
   /**
    * Tick stats forward by dt seconds using real-time decay.
    * Mutates petState in place and returns it for convenience.
    */
   tick(pet: PetState, dt: number): PetState {
     const stage = pet.lifeStage as LifeStage;
+
+    // Handle illness state and effects
+    this.illnessEngine.updateIllness(pet, dt);
+    this.illnessEngine.applyIllnessEffects(pet, dt);
 
     // Apply base decay for each visible stat
     for (const stat of VISIBLE_STATS) {
@@ -117,6 +128,23 @@ export class StatsEngine {
   getWellness(pet: PetState): number {
     const sum = VISIBLE_STATS.reduce((acc, s) => acc + pet.stats[s], 0);
     return sum / VISIBLE_STATS.length;
+  }
+
+  /** Check if the pet is currently ill. */
+  isIll(pet: PetState): boolean {
+    return this.illnessEngine.isIll(pet);
+  }
+
+  /** Get current illness information. */
+  getIllnessInfo(
+    pet: PetState,
+  ): { type: string; name: string; description: string; progress: number } | null {
+    return this.illnessEngine.getIllnessInfo(pet);
+  }
+
+  /** Cure the pet's current illness. */
+  cureIllness(pet: PetState): void {
+    this.illnessEngine.cureIllness(pet);
   }
 
   private isVisibleStat(name: string): name is StatName {

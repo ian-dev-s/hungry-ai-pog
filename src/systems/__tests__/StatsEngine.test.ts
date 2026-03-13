@@ -32,6 +32,10 @@ function createTestPet(overrides?: Partial<PetState>): PetState {
       trust: 50,
       stress: 10,
     },
+    illness: {
+      type: null,
+      startTimestamp: null,
+    },
     evolutionPath: null,
     birthTimestamp: Date.now(),
     stageStartTimestamp: Date.now(),
