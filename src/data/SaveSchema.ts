@@ -3,7 +3,7 @@
  * Version-tagged to support future migrations.
  */
 
-export const CURRENT_SAVE_VERSION = 1;
+export const CURRENT_SAVE_VERSION = 2;
 
 export interface PetState {
   name: string;
@@ -26,6 +26,14 @@ export interface PetState {
   evolutionPath: string | null;
   birthTimestamp: number;
   stageStartTimestamp: number;
+  careHistory: {
+    happinessAvg: number;
+    disciplineRatio: number;
+    uniqueFoodsCount: number;
+    activitiesCompleted: number;
+    bondAvg: number;
+    secretFlags: Record<string, boolean>;
+  };
 }
 
 export interface InventoryItem {
