@@ -263,7 +263,84 @@ export const TALK_STRESS_REDUCTION = 5;
 export const TALK_COOLDOWN = 60;
 
 /** Maximum number of events stored in pet memory. */
-export const MAX_MEMORY_EVENTS = 20;
+export const MAX_MEMORY_EVENTS = 100;
 
 /** How long (ms) before an event is considered "old" and loses influence. */
-export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+export const EVENT_MEMORY_DECAY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// ─── Vocabulary Growth ──────────────────────────────────────────────────────
+
+export type LifeStageVocab = 'baby' | 'child' | 'adolescent' | 'adult' | 'elder';
+
+export interface VocabularyTier {
+  /** Life stages that unlock this tier. */
+  minStage: LifeStageVocab;
+  /** Words/phrases available at this tier. */
+  phrases: Record<BubbleCategory, string[]>;
+}
+
+/** Ordered life stages for vocabulary comparison. */
+export const LIFE_STAGE_ORDER: LifeStageVocab[] = [
+  'baby',
+  'child',
+  'adolescent',
+  'adult',
+  'elder',
+];
+
+/**
+ * Vocabulary tiers — pets unlock richer phrases as they age.
+ * Earlier tiers remain available; later tiers add to the pool.
+ */
+export const VOCABULARY_TIERS: VocabularyTier[] = [
+  {
+    minStage: 'baby',
+    phrases: {
+      need: ['...!', 'Wah!', 'Mm!'],
+      feeling: ['!', '...'],
+      request: ['!', 'Mm!'],
+      affection: ['~', '♡'],
+      rebellion: ['No!'],
+    },
+  },
+  {
+    minStage: 'child',
+    phrases: {
+      need: ['Hungry...', 'Sleepy...', 'Want!'],
+      feeling: ['Happy!', 'Sad...', 'Yay!'],
+      request: ['Play?', 'Want that!', 'More!'],
+      affection: ['Love!', 'Hug!'],
+      rebellion: ['No way!', 'Don\'t wanna!'],
+    },
+  },
+  {
+    minStage: 'adolescent',
+    phrases: {
+      need: ['I\'m starving!', 'So tired...', 'Need a bath'],
+      feeling: ['Feeling great!', 'Kinda bored...', 'This is fun!'],
+      request: ['Can we play?', 'I want that one!', 'Let\'s go explore!'],
+      affection: ['You\'re the best!', 'Best friend!'],
+      rebellion: ['Whatever...', 'You\'re not the boss of me!', 'Make me!'],
+    },
+  },
+  {
+    minStage: 'adult',
+    phrases: {
+      need: ['Could use a snack', 'Time for a rest?', 'Feeling under the weather'],
+      feeling: ['What a great day!', 'Not much going on...', 'Feeling adventurous!'],
+      request: ['How about a game?', 'Remember that food I liked?', 'Shall we explore?'],
+      affection: ['I\'m so glad you\'re here', 'Couldn\'t ask for a better friend', 'Nuzzle~'],
+      rebellion: ['I\'d rather not', 'Maybe later...'],
+    },
+  },
+  {
+    minStage: 'elder',
+    phrases: {
+      need: ['These old bones need rest', 'A warm meal would be nice', 'Could use some care'],
+      feeling: ['Ah, what a peaceful day', 'Reminds me of old times...', 'Still got it!'],
+      request: ['Tell me a story?', 'Let\'s enjoy the garden', 'One more adventure?'],
+      affection: ['All these years together...', 'You\'ve always been there', 'My dearest friend'],
+      rebellion: ['I\'ve earned the right to say no', 'At my age, I do what I want'],
+    },
+  },
+];
