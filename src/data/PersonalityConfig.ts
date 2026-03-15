@@ -266,4 +266,108 @@ export const TALK_COOLDOWN = 60;
 export const MAX_MEMORY_EVENTS = 20;
 
 /** How long (ms) before an event is considered "old" and loses influence. */
-export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+export const EVENT_MEMORY_DECAY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// ─── Vocabulary Growth by Life Stage ────────────────────────────────────────
+
+export type LifeStage = 'egg' | 'juvenile' | 'adolescent' | 'adult' | 'elder';
+
+export const LIFE_STAGE_ORDER: LifeStage[] = ['egg', 'juvenile', 'adolescent', 'adult', 'elder'];
+
+/**
+ * Vocabulary variants for speech bubbles by life stage.
+ * Younger pets use simpler/shorter text; older pets use richer vocabulary.
+ * Each key matches a bubble identifier; values are the text for that stage.
+ */
+export const VOCABULARY_BY_STAGE: Record<LifeStage, Record<string, string>> = {
+  egg: {
+    hungry: '...',
+    tired: '...',
+    dirty: '...',
+    sick: '...',
+    lonely: '...',
+    stressed: '...',
+    happy: '!',
+    bored: '...',
+    anxious: '...',
+    playful: '!',
+    grumpy: '...',
+    affectionate: '~',
+    rebellious: '!',
+    favorite_food: '...',
+    favorite_game: '...',
+    go_outside: '...',
+  },
+  juvenile: {
+    hungry: 'Food!',
+    tired: 'Sleepy...',
+    dirty: 'Icky!',
+    sick: 'Ow...',
+    lonely: 'Play?',
+    stressed: 'Scared!',
+    happy: 'Yay!',
+    bored: 'Bored!',
+    anxious: 'Eep!',
+    playful: 'Play!',
+    grumpy: 'Hmph!',
+    affectionate: 'Love!',
+    rebellious: 'No!',
+    favorite_food: 'Want {food}!',
+    favorite_game: '{game}!',
+    go_outside: 'Outside!',
+  },
+  adolescent: {
+    hungry: 'Hungry...',
+    tired: 'Sleepy...',
+    dirty: 'Need bath...',
+    sick: 'Not feeling well...',
+    lonely: 'Play with me?',
+    stressed: 'Anxious...',
+    happy: 'Happy!',
+    bored: 'Bored...',
+    anxious: 'Scared...',
+    playful: "Let's play!",
+    grumpy: 'Hmph!',
+    affectionate: 'Love you!',
+    rebellious: 'No way!',
+    favorite_food: 'Want {food}!',
+    favorite_game: 'Play {game}?',
+    go_outside: 'Explore!',
+  },
+  adult: {
+    hungry: "I'm getting hungry!",
+    tired: 'Time for a nap...',
+    dirty: 'Could use a bath.',
+    sick: "I don't feel so good...",
+    lonely: 'I miss you! Come hang out?',
+    stressed: "Something's bothering me...",
+    happy: 'Feeling great today!',
+    bored: "There's nothing to do...",
+    anxious: "I'm a bit worried...",
+    playful: "Let's do something fun!",
+    grumpy: 'Leave me alone...',
+    affectionate: "You're the best friend ever!",
+    rebellious: "I'll do what I want!",
+    favorite_food: 'Can I have some {food}? Please!',
+    favorite_game: "How about a round of {game}?",
+    go_outside: "Let's go on an adventure!",
+  },
+  elder: {
+    hungry: 'A nice meal would be lovely.',
+    tired: 'These old bones need rest...',
+    dirty: 'I could use some freshening up.',
+    sick: "I'm feeling under the weather...",
+    lonely: "It's been a while, hasn't it? Come sit with me.",
+    stressed: 'I could use some peace and quiet.',
+    happy: "Life is good, isn't it?",
+    bored: 'Tell me a story, will you?',
+    anxious: "I worry sometimes, you know...",
+    playful: 'Still got some life in me yet!',
+    grumpy: 'Back in my day...',
+    affectionate: "You've always been there for me. Thank you.",
+    rebellious: "I've earned the right to be stubborn!",
+    favorite_food: "I'd love some {food}, for old times' sake.",
+    favorite_game: "Remember when we used to play {game}?",
+    go_outside: 'A gentle stroll would be nice.',
+  },
+};
