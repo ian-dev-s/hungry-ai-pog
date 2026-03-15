@@ -248,6 +248,8 @@ describe('CommunicationSystem', () => {
     });
 
     it('should include request bubbles from memory', () => {
+      // Request bubbles require adolescent+ vocabulary tier
+      pet.lifeStage = 'adolescent';
       pet.stats.hunger = 40; // Below 50 triggers food request
       // Add food memory
       pet.communication.memory.push(
@@ -258,6 +260,105 @@ describe('CommunicationSystem', () => {
       const bubbles = commSystem.getCandidateBubbles(pet);
       const foodRequest = bubbles.find((b) => b.text.includes('apple'));
       expect(foodRequest).toBeDefined();
+    });
+  });
+
+  describe('vocabulary growth', () => {
+    it('should use simple text for blob stage', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      blobPet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(blobPet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('...');
+    });
+
+    it('should use basic words for juvenile stage', () => {
+      const juvenilePet = createTestPet({ lifeStage: 'juvenile' });
+      juvenilePet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(juvenilePet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe('Hungry!');
+    });
+
+    it('should use full sentences for adult stage', () => {
+      const adultPet = createTestPet({ lifeStage: 'adult' });
+      adultPet.stats.hunger = 10;
+
+      const bubbles = commSystem.getCandidateBubbles(adultPet);
+      const hungryBubble = bubbles.find((b) => b.icon === '🍖');
+      expect(hungryBubble).toBeDefined();
+      expect(hungryBubble!.text).toBe("I'm getting hungry...");
+    });
+
+    it('should filter out feeling bubbles for blob stage', () => {
+      const blobPet = createTestPet({ lifeStage: 'blob' });
+      // Trigger a mood
+      moodEngine.recordEvent(blobPet, 'played_game');
+
+      const bubbles = commSystem.getCandidateBubbles(blobPet);
+      const feelingBubbles = bubbles.filter((b) => b.category === 'feeling');
+      expect(feelingBubbles).toHaveLength(0);
+    });
+
+    it('should allow feeling bubbles for juvenile stage', () => {
+      const juvenilePet = createTestPet({ lifeStage: 'juvenile' });
+      moodEngine.recordEvent(juvenilePet, 'played_game');
+
+      const bubbles = commSystem.getCandidateBubbles(juvenilePet);
+      const feelingBubbles = bubbles.filter((b) => b.category === 'feeling');
+      expect(feelingBubbles.length).toBeGreaterThan(0);
+    });
+
+    it('should filter out request bubbles for juvenile stage', () => {
+      const juvenilePet = createTestPet({ lifeStage: 'juvenile' });
+      juvenilePet.stats.hunger = 40;
+      juvenilePet.communication.memory.push(
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+      );
+
+      const bubbles = commSystem.getCandidateBubbles(juvenilePet);
+      const requestBubbles = bubbles.filter((b) => b.category === 'request');
+      expect(requestBubbles).toHaveLength(0);
+    });
+
+    it('should allow request bubbles for adolescent stage', () => {
+      const adolescentPet = createTestPet({ lifeStage: 'adolescent' });
+      adolescentPet.stats.hunger = 40;
+      adolescentPet.communication.memory.push(
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+        { type: 'fed_loved', timestamp: Date.now(), details: 'apple' },
+      );
+
+      const bubbles = commSystem.getCandidateBubbles(adolescentPet);
+      const requestBubbles = bubbles.filter((b) => b.category === 'request');
+      expect(requestBubbles.length).toBeGreaterThan(0);
+    });
+
+    it('should allow affection bubbles only for adult and elder stages', () => {
+      const tier = commSystem.getVocabularyTier(
+        createTestPet({ lifeStage: 'adult' }),
+      );
+      expect(tier.categories).toContain('affection');
+
+      const adolescentTier = commSystem.getVocabularyTier(
+        createTestPet({ lifeStage: 'adolescent' }),
+      );
+      expect(adolescentTier.categories).not.toContain('affection');
+    });
+
+    it('should use elder vocabulary same as adult', () => {
+      const elderPet = createTestPet({ lifeStage: 'elder' });
+      elderPet.stats.energy = 15;
+
+      const bubbles = commSystem.getCandidateBubbles(elderPet);
+      const tiredBubble = bubbles.find((b) => b.icon === '💤');
+      expect(tiredBubble).toBeDefined();
+      expect(tiredBubble!.text).toBe('Could use a nap...');
     });
   });
 
