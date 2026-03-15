@@ -267,3 +267,108 @@ export const MAX_MEMORY_EVENTS = 20;
 
 /** How long (ms) before an event is considered "old" and loses influence. */
 export const EVENT_MEMORY_DECAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// ─── Vocabulary Growth ──────────────────────────────────────────────────────
+
+export type VocabularyTier = 'babble' | 'simple' | 'basic' | 'fluent' | 'eloquent';
+
+export const VOCABULARY_TIERS: Record<string, VocabularyTier> = {
+  egg: 'babble',
+  blob: 'babble',
+  juvenile: 'simple',
+  adolescent: 'basic',
+  adult: 'fluent',
+  elder: 'eloquent',
+};
+
+/**
+ * Speech bubble text variants by vocabulary tier.
+ * Each need/feeling key maps to tier-appropriate text.
+ * The pet's life stage determines which tier is used.
+ */
+export const VOCABULARY_VARIANTS: Record<string, Record<VocabularyTier, string>> = {
+  hungry: {
+    babble: '...',
+    simple: 'Hungry...',
+    basic: 'I\'m hungry!',
+    fluent: 'Could I have some food?',
+    eloquent: 'I\'d love a meal, if you have a moment.',
+  },
+  tired: {
+    babble: 'Zzz...',
+    simple: 'Sleepy...',
+    basic: 'I\'m tired!',
+    fluent: 'I need some rest.',
+    eloquent: 'I\'m feeling rather weary today.',
+  },
+  dirty: {
+    babble: '...',
+    simple: 'Dirty...',
+    basic: 'Need bath!',
+    fluent: 'I could use a bath.',
+    eloquent: 'I\'d appreciate a good grooming session.',
+  },
+  sick: {
+    babble: '...',
+    simple: 'Owie...',
+    basic: 'Not feeling well...',
+    fluent: 'I think I\'m sick.',
+    eloquent: 'I\'m under the weather and could use some medicine.',
+  },
+  lonely: {
+    babble: '...',
+    simple: 'Play?',
+    basic: 'Play with me?',
+    fluent: 'I miss spending time together.',
+    eloquent: 'It\'s been a while since we hung out. Want to play?',
+  },
+  stressed: {
+    babble: '...',
+    simple: 'Scared...',
+    basic: 'Anxious...',
+    fluent: 'I\'m feeling stressed out.',
+    eloquent: 'Something is troubling me. Could we just sit together?',
+  },
+  happy: {
+    babble: '!',
+    simple: 'Happy!',
+    basic: 'I\'m happy!',
+    fluent: 'I\'m feeling great today!',
+    eloquent: 'What a wonderful day we\'re having together!',
+  },
+  bored: {
+    babble: '...',
+    simple: 'Bored...',
+    basic: 'I\'m bored!',
+    fluent: 'There\'s nothing to do...',
+    eloquent: 'I\'m yearning for some adventure or stimulation.',
+  },
+  playful: {
+    babble: '!',
+    simple: 'Play!',
+    basic: 'Let\'s play!',
+    fluent: 'I\'m in the mood for a game!',
+    eloquent: 'How about we play something fun together?',
+  },
+  grumpy: {
+    babble: '...',
+    simple: 'Hmph!',
+    basic: 'Leave me alone!',
+    fluent: 'I\'m not in the mood right now.',
+    eloquent: 'I\'d prefer some quiet time to myself, if you don\'t mind.',
+  },
+  affectionate: {
+    babble: '♥',
+    simple: 'Love!',
+    basic: 'Love you!',
+    fluent: 'You\'re the best!',
+    eloquent: 'I\'m so grateful to have you in my life.',
+  },
+  rebellious: {
+    babble: '!',
+    simple: 'No!',
+    basic: 'No way!',
+    fluent: 'I don\'t want to!',
+    eloquent: 'I respectfully decline your request.',
+  },
+};
